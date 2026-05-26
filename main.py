@@ -8,6 +8,18 @@ import time
 import urllib.request
 from datetime import datetime
 
+try:
+    import opencc
+    _converter = opencc.OpenCC('t2s')
+    def to_simplified(text: str) -> str:
+        """繁体转简体"""
+        if not text:
+            return text
+        return _converter.convert(text)
+except ImportError:
+    def to_simplified(text: str) -> str:
+        return text
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -41,6 +53,7 @@ def fetch_wikipedia_events(month: int, day: int) -> list:
         # 清理 HTML 标签
         import re
         text = re.sub(r"<[^>]+>", "", text)
+        text = to_simplified(text)
         if year and text:
             events.append(f"**{year}年** — {text}")
     return events
@@ -56,6 +69,7 @@ def fetch_wikipedia_births(month: int, day: int) -> list:
         text = item.get("text", "")
         import re
         text = re.sub(r"<[^>]+>", "", text)
+        text = to_simplified(text)
         if year and text:
             births.append(f"**{year}年** — {text}")
     return births
